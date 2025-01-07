@@ -13,7 +13,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 
-mongoose.connect('mongodb://localhost:27017/your_db_name', {
+mongoose.connect('mongodb+srv://FoodRage:madhavan1234@cluster0.qrqobsg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
