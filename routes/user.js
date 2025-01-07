@@ -121,9 +121,8 @@ router.post('/forgot-password', async (req, res) => {
     }
   });
   
-// Reset Password Route
-// Reset Password Route with Confirm Password
-router.post('/reset-password/:token', async (req, res) => {
+
+  router.post('/reset-password/:token', async (req, res) => {
     const { password, confirmPassword } = req.body;
     const { token } = req.params;
   
@@ -132,6 +131,7 @@ router.post('/reset-password/:token', async (req, res) => {
     }
   
     try {
+      // Verify the token
       const decoded = jwt.verify(token, 'reset_secret');
       const user = await User.findById(decoded.id);
   
@@ -139,19 +139,28 @@ router.post('/reset-password/:token', async (req, res) => {
         return res.status(404).json({ message: 'ユーザーが見つかりません' });
       }
   
+      // Check if the new password is the same as the current password
+      const isSamePassword = await bcrypt.compare(password, user.password);
+      if (isSamePassword) {
+        return res.status(400).json({ message: '新しいパスワードは現在のパスワードと同じです' });
+      }
   
-      user.password = password;  
+      // Hash the new password and save it
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
       await user.save();
   
       res.status(200).json({ message: 'パスワードがリセットされました' });
     } catch (error) {
+      console.error(error);
       res.status(400).json({ message: 'トークンが無効または期限切れです' });
     }
-  });
+});
+  
 
 router.get('/users', async (req, res) => {
     try {
-      const users = await User.find().select('-password');  // Exclude the password field
+      const users = await User.find().select('-password');  
       res.status(200).json(users);
     } catch (error) {
       console.error(error);
